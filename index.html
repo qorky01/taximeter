@@ -1,1 +1,83 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>키즈 택시 미터기</title>
+<style>
+  body { background:#0b0f14; color:#e8f0ff; font-family:-apple-system,Roboto,Pretendard,sans-serif; margin:0; }
+  .wrap{max-width:500px;margin:0 auto;padding:20px}
+  h1{font-size:20px;margin:0;color:#cfe3ff}
+  .badge{font-size:12px;background:#ffd166;color:#000;padding:3px 8px;border-radius:8px}
+  .meter{background:#111825;padding:16px;border-radius:12px;margin-top:10px}
+  .fare{font-size:40px;text-align:right;color:#5bf5a7;text-shadow:0 0 8px rgba(36,208,90,.5)}
+  .sub{display:flex;justify-content:space-between;margin-top:10px}
+  .card{background:#0b1220;padding:10px;border-radius:8px;flex:1;margin:0 4px}
+  .card .t{font-size:12px;color:#87a2c4}
+  .card .v{font-size:18px;margin-top:5px}
+  .controls{display:flex;gap:10px;margin-top:14px}
+  button{flex:1;padding:12px;border:none;border-radius:8px;font-weight:bold;color:#fff}
+  .start{background:#1d5a32}
+  .stop{background:#5a2a2a}
+  .reset{background:#2b3a5c}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>키즈 택시 미터기 <span class="badge">놀이용</span></h1>
+  <div class="meter">
+    <div class="fare"><span id="fare">3,800</span> 원</div>
+    <div class="sub">
+      <div class="card">
+        <div class="t">거리</div>
+        <div class="v"><span id="dist">0.000</span> km</div>
+      </div>
+      <div class="card">
+        <div class="t">시간</div>
+        <div class="v"><span id="time">00:00</span></div>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="start" id="btnStart">출발</button>
+      <button class="stop" id="btnStop">정지</button>
+      <button class="reset" id="btnReset">리셋</button>
+    </div>
+  </div>
+</div>
 
+<script>
+(() => {
+  const state = {
+    running:false, fare:3800, distanceM:0, timeSec:0,
+    last:performance.now(), secAcc:0
+  };
+  const fareEl=document.getElementById("fare");
+  const distEl=document.getElementById("dist");
+  const timeEl=document.getElementById("time");
+  document.getElementById("btnStart").onclick=()=>{state.running=true;state.last=performance.now();}
+  document.getElementById("btnStop").onclick=()=>{state.running=false;}
+  document.getElementById("btnReset").onclick=()=>{state.running=false;state.fare=3800;state.distanceM=0;state.timeSec=0;state.secAcc=0;render();}
+  function render(){
+    fareEl.textContent=state.fare.toLocaleString("ko-KR");
+    distEl.textContent=(state.distanceM/1000).toFixed(3);
+    const m=String(Math.floor(state.timeSec/60)).padStart(2,"0");
+    const s=String(state.timeSec%60).padStart(2,"0");
+    timeEl.textContent=`${m}:${s}`;
+  }
+  function loop(now){
+    const dt=(now-state.last)/1000; state.last=now;
+    if(state.running){
+      state.secAcc+=dt;
+      while(state.secAcc>=1){
+        state.secAcc-=1;
+        state.timeSec++;
+        state.fare+=50; // 초당 50원 증가
+      }
+    }
+    render(); requestAnimationFrame(loop);
+  }
+  render(); requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
